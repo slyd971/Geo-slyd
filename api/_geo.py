@@ -555,14 +555,20 @@ ENGINES = {"openai": ("ChatGPT", "OPENAI_API_KEY", ask_openai),
 
 
 def llm(prompt, system):
-    """Modèle d'analyse : Claude si dispo, sinon Mistral (mode 100 % UE), sinon OpenAI."""
+    """Modèle d'analyse : Claude si dispo, sinon Mistral (mode 100 % UE), sinon Gemini, sinon OpenAI."""
     pref = os.getenv("GEO_ANALYSIS", "")
-    order = [pref] if pref else ["anthropic", "mistral", "openai"]
+    order = [pref] if pref else ["anthropic", "mistral", "gemini", "openai"]
     for p in order:
         if p == "anthropic" and os.getenv("ANTHROPIC_API_KEY"):
             return ask_anthropic(prompt, web=False, system=system, max_tokens=4000)[0]
         if p == "mistral" and os.getenv("MISTRAL_API_KEY"):
             return ask_mistral(prompt, system=system)[0]
+        if p == "gemini" and os.getenv("GEMINI_API_KEY"):
+            d = _post(f"https://generativelanguage.googleapis.com/v1beta/models/{MODELS['gemini']}:generateContent",
+                      {"x-goog-api-key": os.environ["GEMINI_API_KEY"]},
+                      {"systemInstruction": {"parts": [{"text": system}]},
+                       "contents": [{"parts": [{"text": prompt}]}]})
+            return parse_gemini(d)[0]
         if p == "openai" and os.getenv("OPENAI_API_KEY"):
             d = _post("https://api.openai.com/v1/responses",
                       {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"},

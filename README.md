@@ -40,6 +40,12 @@ npx vercel --prod
 
 L'app s'ouvre alors en plein écran, comme une vraie app.
 
+## Version gratuite
+
+- Sans aucune clé : audit 32 critères, llms.txt, JSON-LD, test des pages. Tout fonctionne.
+- Avec une clé **Gemini** gratuite (aistudio.google.com/apikey) : suivi des citations dans Gemini, analyse rédigée et rédaction de pages, dans la limite du quota gratuit de Google.
+- Option : une clé **Mistral** gratuite (offre Experiment sur console.mistral.ai) ajoute Le Chat et une analyse 100 % UE.
+
 ## Bon à savoir
 
 - **Historique des citations** : il est gardé sur le téléphone (dans le navigateur). Si tu changes de téléphone ou vides les données de Safari, il repart à zéro. Pour un suivi automatique chaque semaine sans ouvrir l'app, il faudra ajouter une base de données (Vercel Postgres ou Upstash) et une tâche planifiée.

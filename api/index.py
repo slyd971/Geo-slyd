@@ -88,7 +88,7 @@ def ping():
 @app.get("/api/engines")
 def engines():
     return jsonify(engines=[{"id": k, "label": v[0], "ready": bool(os.getenv(v[1]))} for k, v in g.ENGINES.items()],
-                   analysis=bool(os.getenv("ANTHROPIC_API_KEY") or os.getenv("MISTRAL_API_KEY") or os.getenv("OPENAI_API_KEY")))
+                   analysis=bool(os.getenv("ANTHROPIC_API_KEY") or os.getenv("MISTRAL_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("OPENAI_API_KEY")))
 
 
 @app.post("/api/scan")
@@ -109,7 +109,7 @@ def analyse():
     s = g.Scan(public_url(body().get("url"))).run()
     text = g.agent_analyse(s)
     if text is None:
-        return jsonify(error="Ajoute une clé ANTHROPIC_API_KEY, MISTRAL_API_KEY ou OPENAI_API_KEY dans Vercel."), 400
+        return jsonify(error="Ajoute une clé ANTHROPIC_API_KEY, GEMINI_API_KEY, MISTRAL_API_KEY ou OPENAI_API_KEY dans Vercel."), 400
     return jsonify(text=text)
 
 
@@ -148,7 +148,7 @@ def rediger():
                 "N'invente ni chiffres, ni clients, ni témoignages : mets [À COMPLÉTER] là où une donnée manque.",
                 "Tu es rédacteur web spécialisé GEO. Tu écris en français, phrases courtes, tutoiement.")
     if out is None:
-        return jsonify(error="Ajoute une clé ANTHROPIC_API_KEY, MISTRAL_API_KEY ou OPENAI_API_KEY dans Vercel."), 400
+        return jsonify(error="Ajoute une clé ANTHROPIC_API_KEY, GEMINI_API_KEY, MISTRAL_API_KEY ou OPENAI_API_KEY dans Vercel."), 400
     return jsonify(text=out)
 
 
