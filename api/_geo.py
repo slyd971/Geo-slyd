@@ -45,7 +45,7 @@ ENTITY_TYPES = {"organization", "localbusiness", "person", "musicgroup", "profes
                 "educationalorganization", "sportsorganization", "danceGroup".lower()}
 
 MODELS = {
-    "openai": os.getenv("GEO_OPENAI_MODEL", "gpt-5-mini"),
+    "openai": os.getenv("GEO_OPENAI_MODEL", "gpt-5.4-mini"),
     "perplexity": os.getenv("GEO_PERPLEXITY_MODEL", "sonar"),
     "gemini": os.getenv("GEO_GEMINI_MODEL", "gemini-3.8-flash"),
     "anthropic": os.getenv("GEO_ANTHROPIC_MODEL", "claude-sonnet-5-5"),
