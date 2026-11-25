@@ -403,7 +403,14 @@ const issueHtml = p => `<div class="issue"><span class="pts">+${fr(p.gain)} pt</
 
 const ACTIVITIES = ["DJ", "Artiste", "Danseur", "Photographe / vidéaste", "Coach sportif", "Make-up artist", "Organisateur de soirée", "Créateur de contenu", "Autre"];
 function renderGate() {
-  if (!SCAN.remaining && !SCAN.top.length) { $("#gate").classList.add("hide"); return }
+  if (!SCAN.remaining) {   // tout est déjà visible : pas de formulaire, on propose le contact
+    $("#gate").classList.remove("hide");
+    const msg = `Salut, je viens de faire l'audit IA de mon site (${SCAN.url}) : ${SCAN.score}/100. Je voudrais en parler.`;
+    $("#gate").innerHTML = `<p class="label">Et maintenant</p><h3>Ton site part avec une longueur d'avance</h3>
+      <p>Tu veux une page encore plus forte pour tes bookings et tes partenariats ? Parlons-en.</p>
+      <a class="btn btn-ink btn-lg" href="${waLink(msg)}" target="_blank" rel="noopener">Écrire sur WhatsApp ${arrow}</a>`;
+    return;
+  }
   $("#gate").classList.remove("hide");
   $("#gate").innerHTML = `
     <p class="label">Ton plan complet</p>
