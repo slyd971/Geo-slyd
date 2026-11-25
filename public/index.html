@@ -112,7 +112,6 @@ pre{background:var(--mockup);border:1px solid var(--line);border-radius:var(--r)
     <div class="card">
       <h2>Citations dans les IA</h2>
       <p class="mut">Pose tes questions aux IA et vois si ta marque est citée.</p>
-      <div id="engines" class="small mut"></div>
       <label>Marque</label><input id="c-brand" placeholder="Nom de la marque ou de l'artiste">
       <label>Autres noms (séparés par des virgules)</label><input id="c-aliases" placeholder="Autres façons de l'écrire (facultatif)">
       <label>Domaine</label><input id="c-domain" autocapitalize="off" placeholder="nom-de-domaine.fr">
@@ -270,7 +269,6 @@ async function loadEngines() {
   if (ENGINES) return;
   try {
     const r = await api("engines"); ENGINES = r.engines;
-    $("#engines").innerHTML = "Moteurs : " + ENGINES.map(e => `<span class="pill ${e.ready ? "ok" : ""}">${esc(e.label)}${e.ready ? "" : " (pas de clé)"}</span>`).join(" ");
   } catch {}
 }
 function week(d = new Date()) {
