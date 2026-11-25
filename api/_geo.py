@@ -555,25 +555,38 @@ ENGINES = {"openai": ("ChatGPT", "OPENAI_API_KEY", ask_openai),
 
 
 def llm(prompt, system):
-    """Modèle d'analyse : Claude si dispo, sinon Mistral (mode 100 % UE), sinon Gemini, sinon OpenAI."""
+    """Modèle d'analyse : essaie Claude, Gemini, Mistral puis OpenAI ; passe au suivant si l'un échoue."""
     pref = os.getenv("GEO_ANALYSIS", "")
-    order = [pref] if pref else ["anthropic", "mistral", "gemini", "openai"]
+    order = ["anthropic", "gemini", "mistral", "openai"]
+    if pref in order:
+        order.remove(pref)
+        order.insert(0, pref)
+    errors = []
     for p in order:
-        if p == "anthropic" and os.getenv("ANTHROPIC_API_KEY"):
-            return ask_anthropic(prompt, web=False, system=system, max_tokens=4000)[0]
-        if p == "mistral" and os.getenv("MISTRAL_API_KEY"):
-            return ask_mistral(prompt, system=system)[0]
-        if p == "gemini" and os.getenv("GEMINI_API_KEY"):
-            d = _post(f"https://generativelanguage.googleapis.com/v1beta/models/{MODELS['gemini']}:generateContent",
-                      {"x-goog-api-key": os.environ["GEMINI_API_KEY"]},
-                      {"systemInstruction": {"parts": [{"text": system}]},
-                       "contents": [{"parts": [{"text": prompt}]}]})
-            return parse_gemini(d)[0]
-        if p == "openai" and os.getenv("OPENAI_API_KEY"):
-            d = _post("https://api.openai.com/v1/responses",
-                      {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"},
-                      {"model": MODELS["openai"], "instructions": system, "input": prompt})
-            return parse_openai(d)[0]
+        key = {"anthropic": "ANTHROPIC_API_KEY", "gemini": "GEMINI_API_KEY",
+               "mistral": "MISTRAL_API_KEY", "openai": "OPENAI_API_KEY"}[p]
+        if not os.getenv(key):
+            continue
+        try:
+            if p == "anthropic":
+                return ask_anthropic(prompt, web=False, system=system, max_tokens=4000)[0]
+            if p == "mistral":
+                return ask_mistral(prompt, system=system)[0]
+            if p == "gemini":
+                d = _post(f"https://generativelanguage.googleapis.com/v1beta/models/{MODELS['gemini']}:generateContent",
+                          {"x-goog-api-key": os.environ["GEMINI_API_KEY"]},
+                          {"systemInstruction": {"parts": [{"text": system}]},
+                           "contents": [{"parts": [{"text": prompt}]}]})
+                return parse_gemini(d)[0]
+            if p == "openai":
+                d = _post("https://api.openai.com/v1/responses",
+                          {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"},
+                          {"model": MODELS["openai"], "instructions": system, "input": prompt})
+                return parse_openai(d)[0]
+        except Exception as ex:  # noqa
+            errors.append(f"{ENGINES[p][0]} : {str(ex)[:200]}")
+    if errors:
+        raise RuntimeError("Aucune IA n'a répondu. " + " | ".join(errors))
     return None
 
 
