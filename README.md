@@ -4,6 +4,31 @@
 
 Une app web adaptée au mobile : audit GEO sur 32 critères, suivi des citations dans ChatGPT, Perplexity, Gemini, Claude et Le Chat, correctifs prêts à coller (llms.txt, JSON-LD), rédaction de pages. L'accès est protégé par un mot de passe.
 
+## Les deux espaces
+
+| Adresse | Pour qui | Accès |
+|---|---|---|
+| https://geo-slyd.presskit.fr | Le public : audit IA gratuit (score, 3 priorités, plan complet contre un contact) | Ouvert, non référencé (robots.txt + noindex) |
+| https://geo-slyd.presskit.fr/outil/ | Toi : audit complet, analyse IA, citations, rédaction, **Prospects** | Mot de passe `APP_PASSWORD` |
+
+L'audit public n'appelle aucune IA : il ne consomme pas tes crédits API. Seul ton espace pro les utilise.
+
+### Enregistrer les prospects (Upstash Redis, gratuit)
+
+Sans stockage, l'audit public marche mais les contacts laissés ne sont pas enregistrés (ils apparaissent seulement dans les logs Vercel).
+
+1. Vercel → ton projet → **Storage** → Create → **Upstash for Redis** (offre gratuite) → Connect au projet `geo-slyd`.
+2. Vercel ajoute tout seul `KV_REST_API_URL` et `KV_REST_API_TOKEN` (ou `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`).
+3. **Redeploy**. Les prospects apparaissent dans l'onglet Prospects de /outil/.
+
+Le stockage active aussi une limite de 15 audits publics par jour et par appareil (variable `PUBLIC_SCAN_LIMIT`).
+
+### Variables optionnelles
+
+- `WHATSAPP_NUMBER` : numéro des boutons WhatsApp (par défaut celui de presskit.fr)
+- `CONTACT_EMAIL` : par défaut contact@presskit.fr
+- `SITE_URL` : par défaut https://www.presskit.fr
+
 ## Mise en ligne (10 minutes)
 
 ### Option A : par GitHub (recommandé)
@@ -68,6 +93,8 @@ APP_PASSWORD=test python3 api/index.py
 
 ## Contenu
 
-- `public/` : l'interface (une page, installable sur l'écran d'accueil)
+- `public/index.html` : la page publique d'audit
+- `public/outil/` : ton espace pro (installable sur l'écran d'accueil)
+- `public/assets/` : logo, captures de press kits, police Manrope, image de partage
 - `api/index.py` : l'API (Flask)
 - `api/_geo.py` : le moteur GEO. C'est aussi l'outil en ligne de commande : `python3 api/_geo.py scan presskit.fr`

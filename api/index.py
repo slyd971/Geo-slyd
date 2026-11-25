@@ -1,7 +1,12 @@
 """API web de GEO Agent (Vercel, runtime Python)."""
+import hashlib
 import hmac
 import ipaddress
+import json
 import os
+import re
+import time
+import uuid
 import socket
 import sys
 from urllib.parse import urlparse
@@ -49,7 +54,7 @@ def public_url(url):
 
 @app.before_request
 def guard():
-    if request.path.startswith("/api/") and request.path != "/api/ping":
+    if request.path.startswith("/api/") and request.path != "/api/ping" and not request.path.startswith("/api/public/"):
         err = auth_error()
         if err:
             return jsonify(error=err), 401
@@ -79,6 +84,113 @@ def scan_payload(s):
 
 
 # ── routes ──────────────────────────────────────────────
+
+# ── stockage (Upstash Redis, optionnel) ─────────────────────
+
+def _redis_cfg():
+    url = os.getenv("KV_REST_API_URL") or os.getenv("UPSTASH_REDIS_REST_URL")
+    tok = os.getenv("KV_REST_API_TOKEN") or os.getenv("UPSTASH_REDIS_REST_TOKEN")
+    return (url.rstrip("/"), tok) if url and tok else (None, None)
+
+
+def redis(*cmd):
+    """Exécute une commande Redis via l'API REST d'Upstash. Renvoie None si non configuré ou en erreur."""
+    url, tok = _redis_cfg()
+    if not url:
+        return None
+    try:
+        r = g.requests.post(url, headers={"Authorization": f"Bearer {tok}"}, json=[str(c) for c in cmd], timeout=5)
+        return r.json().get("result")
+    except Exception as ex:  # noqa
+        print("redis error:", ex)
+        return None
+
+
+def client_ip():
+    fwd = request.headers.get("X-Forwarded-For", "")
+    return (fwd.split(",")[0].strip() or request.remote_addr or "?")
+
+
+def rate_limited(kind, limit):
+    """Limite par IP et par jour (actif seulement si Redis est configuré)."""
+    ip_hash = hashlib.sha256(client_ip().encode()).hexdigest()[:16]
+    key = f"rl:{kind}:{time.strftime('%Y%m%d')}:{ip_hash}"
+    n = redis("INCR", key)
+    if n == 1:
+        redis("EXPIRE", key, 86400)
+    return n is not None and int(n) > limit
+
+
+def public_scan_payload(s):
+    cats = []
+    for cat in dict.fromkeys(c["cat"] for c in s.checks):
+        cs = [c for c in s.checks if c["cat"] == cat]
+        cats.append({"name": cat, "points": round(sum(c["points"] for c in cs), 1), "max": sum(c["max"] for c in cs)})
+    plan = [{"label": c["label"], "gain": round(c["max"] - c["points"], 1), "fix": c["fix"]} for c in s.plan()]
+    return cats, plan
+
+
+# ── routes publiques (sans mot de passe) ─────────────────────
+
+@app.get("/api/public/config")
+def public_config():
+    wa = re.sub(r"\D", "", os.getenv("WHATSAPP_NUMBER", "33663907888"))
+    return jsonify(whatsapp=wa or None, email=os.getenv("CONTACT_EMAIL", "contact@presskit.fr"),
+                   site=os.getenv("SITE_URL", "https://www.presskit.fr"))
+
+
+@app.post("/api/public/scan")
+def public_scan():
+    if rate_limited("scan", int(os.getenv("PUBLIC_SCAN_LIMIT", "15"))):
+        return jsonify(error="Tu as atteint la limite de tests pour aujourd'hui. Reviens demain."), 429
+    s = g.Scan(public_url(body().get("url"))).run()
+    cats, plan = public_scan_payload(s)
+    sid = uuid.uuid4().hex
+    redis("SET", f"scan:{sid}", json.dumps({"url": s.final_url, "score": s.score, "plan": plan}), "EX", 3600)
+    return jsonify(id=sid, url=s.final_url, score=s.score, categories=cats,
+                   top=plan[:3], remaining=max(0, len(plan) - 3))
+
+
+@app.post("/api/public/lead")
+def public_lead():
+    b = body()
+    name = (b.get("name") or "").strip()[:80]
+    email = (b.get("email") or "").strip()[:120]
+    phone = re.sub(r"[^\d+ ]", "", b.get("phone") or "")[:30].strip()
+    activity = (b.get("activity") or "").strip()[:60]
+    if not name or not (email or phone):
+        raise g.ScanError("Indique ton prénom et ton e-mail ou ton numéro WhatsApp.")
+    if email and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        raise g.ScanError("Cette adresse e-mail ne semble pas valide.")
+    if not b.get("consent"):
+        raise g.ScanError("Coche la case pour accepter d'être recontacté.")
+    if rate_limited("lead", 20):
+        return jsonify(error="Trop de demandes aujourd'hui. Réessaie demain."), 429
+    cached = redis("GET", f"scan:{b.get('id', '')}")
+    if cached:
+        data = json.loads(cached)
+    else:   # pas de cache : on relance l'audit
+        s = g.Scan(public_url(b.get("url"))).run()
+        data = {"url": s.final_url, "score": s.score, "plan": public_scan_payload(s)[1]}
+    lead = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "name": name, "email": email, "phone": phone,
+            "activity": activity, "url": data["url"], "score": data["score"],
+            "issues": [p["label"] for p in data["plan"][:5]], "consent": True}
+    saved = redis("LPUSH", "leads", json.dumps(lead, ensure_ascii=False)) is not None
+    if not saved:
+        print("NOUVEAU PROSPECT (stockage non configuré) :", json.dumps(lead, ensure_ascii=False))
+    return jsonify(plan=data["plan"], score=data["score"], url=data["url"])
+
+
+# ── routes privées ──────────────────────────────────────────
+
+@app.get("/api/leads")
+def leads():
+    url, _ = _redis_cfg()
+    if not url:
+        return jsonify(leads=[], storage=False)
+    raw = redis("LRANGE", "leads", 0, 499) or []
+    return jsonify(leads=[json.loads(x) for x in raw], storage=True)
+
 
 @app.get("/api/ping")
 def ping():
@@ -159,5 +271,7 @@ if __name__ == "__main__":   # test local : python3 api/index.py
     @app.get("/")
     @app.get("/<path:p>")
     def static_files(p="index.html"):
+        if p.endswith("/") or os.path.isdir(os.path.join(pub, p)):
+            p = p.rstrip("/") + "/index.html"
         return send_from_directory(pub, p)
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8000")))

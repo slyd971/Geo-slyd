@@ -186,7 +186,7 @@ class Scan:
         self.facts["llms_txt"] = llms_ok
         self.add("llms", "Accès des IA", "llms.txt présent et valide", 4, 1 if llms_ok else 0,
                  "valide" if llms_ok else "absent ou invalide",
-                 "Dépose un /llms.txt (commande : geo_agent.py llms URL).")
+                 "Dépose un fichier llms.txt à la racine du site : un résumé clair de qui tu es, de ce que tu proposes et de tes pages principales.")
 
         sitemaps = re.findall(r"(?im)^\s*sitemap:\s*(\S+)", robots_txt) or [root + "/sitemap.xml"]
         sm_ok, self.sitemap_urls = False, []
@@ -211,8 +211,8 @@ class Scan:
         wc = self.facts["words_no_js"]
         self.add("nojs_text", "Contenu lisible", "Texte lisible sans JavaScript (≥ 300 mots)", 8,
                  wc / 300, f"{wc} mots dans le HTML brut",
-                 "Les IA lisent rarement le JavaScript : mets le texte principal dans le HTML "
-                 "(rendu serveur ou génération statique) et vise 300 mots minimum.")
+                 "Les IA lisent rarement le JavaScript : ton texte principal doit être visible directement dans la page, "
+                 "avec au moins 300 mots qui disent qui tu es, ce que tu fais et pour qui.")
         h1 = [h.get_text(" ", strip=True) for h in soup.find_all("h1")]
         self.facts["h1"] = h1
         self.add("h1", "Contenu lisible", "Un seul H1", 3, 1 if len(h1) == 1 else 0,
@@ -249,7 +249,7 @@ class Scan:
         self.jsonld, self.jsonld_types = objs, types
         self.facts["jsonld_types"] = sorted(types)
         self.add("jsonld", "Données structurées", "JSON-LD présent", 5, 1 if raw_blocks else 0,
-                 f"{len(raw_blocks)} bloc(s)", "Ajoute du JSON-LD (commande : geo_agent.py jsonld URL).")
+                 f"{len(raw_blocks)} bloc(s)", "Ajoute des données structurées (JSON-LD) qui décrivent qui tu es et ce que tu proposes.")
         self.add("jsonld_valid", "Données structurées", "JSON-LD valide", 3,
                  (1 if raw_blocks and not invalid else 0),
                  "aucun" if not raw_blocks else (f"{invalid} bloc(s) invalide(s)" if invalid else "valide"),
@@ -257,13 +257,13 @@ class Scan:
         entity = types & ENTITY_TYPES or {t for t in types if t.endswith("business")}
         self.add("entity", "Données structurées", "Entité décrite (Organization / Person / LocalBusiness…)", 5,
                  1 if entity else 0, ", ".join(sorted(entity)) or "aucune",
-                 "Décris qui tu es avec un bloc Organization, Person ou LocalBusiness (nom, logo, contact).")
+                 "Indique aux IA qui tu es avec des données structurées (Person, Organization ou LocalBusiness) : nom, métier, logo, contact.")
         self.add("website", "Données structurées", "WebSite / WebPage", 2,
                  1 if types & {"website", "webpage", "aboutpage", "profilepage", "collectionpage"} else 0,
                  "oui" if types & {"website", "webpage"} else "non", "Ajoute un bloc WebSite avec name et url.")
         self.add("faqpage", "Données structurées", "FAQPage", 3, 1 if "faqpage" in types else 0,
                  "oui" if "faqpage" in types else "non",
-                 "Balise ta FAQ avec FAQPage (le JSON-LD est généré par la commande jsonld).")
+                 "Balise ta FAQ avec des données structurées FAQPage pour que les IA reprennent tes réponses.")
         same_as = [s for o in objs for s in (o.get("sameAs") if isinstance(o.get("sameAs"), list) else [o.get("sameAs")] if o.get("sameAs") else [])]
         self.add("sameas", "Données structurées", "sameAs (profils officiels liés)", 2, 1 if same_as else 0,
                  f"{len(same_as)} lien(s)", "Ajoute sameAs avec tes profils Instagram, LinkedIn, etc. "
