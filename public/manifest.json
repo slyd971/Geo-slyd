@@ -1,8 +1,10 @@
 {
-  "name": "GEO Agent",
-  "short_name": "GEO Agent",
+  "name": "GEO Slyd",
+  "short_name": "GEO Slyd",
   "description": "Audit GEO et suivi des citations dans les IA",
   "start_url": "/",
+  "id": "https://geo-slyd.presskit.fr/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0e0e10",
   "theme_color": "#0e0e10",

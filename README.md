@@ -1,4 +1,6 @@
-# GEO Agent — version en ligne (Vercel)
+# GEO Slyd — version en ligne (Vercel)
+
+**Adresse : https://geo-slyd.presskit.fr** (domaine personnalisé relié au projet Vercel `geo-slyd`). Le site est exclu des moteurs de recherche (robots.txt + noindex).
 
 Une app web adaptée au mobile : audit GEO sur 32 critères, suivi des citations dans ChatGPT, Perplexity, Gemini, Claude et Le Chat, correctifs prêts à coller (llms.txt, JSON-LD), rédaction de pages. L'accès est protégé par un mot de passe.
 
@@ -19,7 +21,7 @@ Une app web adaptée au mobile : audit GEO sur 32 critères, suivi des citations
 | `GEMINI_API_KEY` | Non | Gemini avec Google Search |
 | `MISTRAL_API_KEY` | Non | Le Chat (sans recherche web), analyse 100 % UE |
 
-4. Clique sur **Deploy**. Tu obtiens un lien du type `geo-agent-xxx.vercel.app`.
+4. Clique sur **Deploy**. Le projet est servi sur https://geo-slyd.presskit.fr (Settings → Domains).
 
 Pour modifier une clé plus tard : Settings → Environment Variables, puis **Redeploy**, sinon la nouvelle valeur n'est pas prise en compte.
 
@@ -35,8 +37,8 @@ npx vercel --prod
 
 ## Installer sur le téléphone
 
-- **iPhone (Safari)** : ouvre le lien → bouton Partager → **Sur l'écran d'accueil**.
-- **Android (Chrome)** : menu ⋮ → **Ajouter à l'écran d'accueil** (ou Installer l'application).
+- **iPhone (Safari)** : ouvre https://geo-slyd.presskit.fr → bouton Partager → **Sur l'écran d'accueil**.
+- **Android (Chrome)** : ouvre https://geo-slyd.presskit.fr, puis menu ⋮ → **Ajouter à l'écran d'accueil** (ou Installer l'application).
 
 L'app s'ouvre alors en plein écran, comme une vraie app.
 
