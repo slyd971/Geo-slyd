@@ -4,30 +4,10 @@
 
 Une app web adaptée au mobile : audit GEO sur 32 critères, suivi des citations dans ChatGPT, Perplexity, Gemini, Claude et Le Chat, correctifs prêts à coller (llms.txt, JSON-LD), rédaction de pages. L'accès est protégé par un mot de passe.
 
-## Les deux espaces
+## Accès
 
-| Adresse | Pour qui | Accès |
-|---|---|---|
-| https://geo-slyd.presskit.fr | Le public : audit IA gratuit (score, 3 priorités, plan complet contre un contact) | Ouvert, non référencé (robots.txt + noindex) |
-| https://geo-slyd.presskit.fr/outil/ | Toi : audit complet, analyse IA, citations, rédaction, **Prospects** | Mot de passe `APP_PASSWORD` |
-
-L'audit public n'appelle aucune IA : il ne consomme pas tes crédits API. Seul ton espace pro les utilise.
-
-### Enregistrer les prospects (Upstash Redis, gratuit)
-
-Sans stockage, l'audit public marche mais les contacts laissés ne sont pas enregistrés (ils apparaissent seulement dans les logs Vercel).
-
-1. Vercel → ton projet → **Storage** → Create → **Upstash for Redis** (offre gratuite) → Connect au projet `geo-slyd`.
-2. Vercel ajoute tout seul `KV_REST_API_URL` et `KV_REST_API_TOKEN` (ou `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`).
-3. **Redeploy**. Les prospects apparaissent dans l'onglet Prospects de /outil/.
-
-Le stockage active aussi une limite de 15 audits publics par jour et par appareil (variable `PUBLIC_SCAN_LIMIT`).
-
-### Variables optionnelles
-
-- `WHATSAPP_NUMBER` : numéro des boutons WhatsApp (par défaut celui de presskit.fr)
-- `CONTACT_EMAIL` : par défaut contact@presskit.fr
-- `SITE_URL` : par défaut https://www.presskit.fr
+- **https://geo-slyd.presskit.fr** : l'audit (score, plan d'action, llms.txt, JSON-LD, test des pages) est ouvert, sans mot de passe. Le site n'est pas référencé (robots.txt + noindex).
+- Les fonctions qui consomment des crédits IA (analyse par l'IA, citations, rédaction) demandent le mot de passe `APP_PASSWORD`, une seule fois par appareil. Pour tout ouvrir sans mot de passe : variable `PUBLIC_AI=1` (n'importe qui avec le lien pourra alors utiliser tes crédits).
 
 ## Mise en ligne (10 minutes)
 
@@ -93,8 +73,7 @@ APP_PASSWORD=test python3 api/index.py
 
 ## Contenu
 
-- `public/index.html` : la page publique d'audit
-- `public/outil/` : ton espace pro (installable sur l'écran d'accueil)
-- `public/assets/` : logo, captures de press kits, police Manrope, image de partage
+- `public/index.html` : l'outil (installable sur l'écran d'accueil)
+- `public/assets/` : logo PressKit For You et police Manrope
 - `api/index.py` : l'API (Flask)
 - `api/_geo.py` : le moteur GEO. C'est aussi l'outil en ligne de commande : `python3 api/_geo.py scan presskit.fr`
