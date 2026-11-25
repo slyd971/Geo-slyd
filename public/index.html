@@ -100,7 +100,7 @@ pre{background:var(--mockup);border:1px solid var(--line);border-radius:var(--r)
     <div class="card">
       <h2>Audit GEO</h2>
       <p class="mut">32 critères, score sur 100, plan d'action trié par points gagnés.</p>
-      <input id="url" type="url" inputmode="url" autocapitalize="off" placeholder="presskit.fr">
+      <input id="url" type="url" inputmode="url" autocapitalize="off" placeholder="Adresse du site à analyser">
       <button class="btn" id="b-scan">Lancer l'audit</button>
       <div id="scan-err"></div>
     </div>
@@ -113,11 +113,11 @@ pre{background:var(--mockup);border:1px solid var(--line);border-radius:var(--r)
       <h2>Citations dans les IA</h2>
       <p class="mut">Pose tes questions aux IA et vois si ta marque est citée.</p>
       <div id="engines" class="small mut"></div>
-      <label>Marque</label><input id="c-brand" placeholder="PressKit For You">
-      <label>Autres noms (séparés par des virgules)</label><input id="c-aliases" placeholder="presskit.fr, Presskit">
-      <label>Domaine</label><input id="c-domain" autocapitalize="off" placeholder="presskit.fr">
-      <label>Concurrents (séparés par des virgules)</label><input id="c-comp" placeholder="Linktree, Canva, Wix">
-      <label>Questions suivies (une par ligne)</label><textarea id="c-q" placeholder="Comment créer un press kit de DJ ?"></textarea>
+      <label>Marque</label><input id="c-brand" placeholder="Nom de la marque ou de l'artiste">
+      <label>Autres noms (séparés par des virgules)</label><input id="c-aliases" placeholder="Autres façons de l'écrire (facultatif)">
+      <label>Domaine</label><input id="c-domain" autocapitalize="off" placeholder="nom-de-domaine.fr">
+      <label>Concurrents (séparés par des virgules)</label><input id="c-comp" placeholder="Concurrents à surveiller (facultatif)">
+      <label>Questions suivies (une par ligne)</label><textarea id="c-q" placeholder="Les questions que tes clients posent aux IA"></textarea>
       <button class="btn" id="b-track">Lancer le suivi</button>
       <div id="track-err"></div>
     </div>
@@ -131,7 +131,7 @@ pre{background:var(--mockup);border:1px solid var(--line);border-radius:var(--r)
     <div class="card">
       <h2>Rédiger une page</h2>
       <p class="mut">Une page pensée pour être citée par les IA, sur une question où tu n'apparais pas encore.</p>
-      <label>Question visée</label><textarea id="w-q" style="min-height:70px" placeholder="Quel site pour faire un EPK d'artiste ?"></textarea>
+      <label>Question visée</label><textarea id="w-q" style="min-height:70px" placeholder="La question à laquelle la page doit répondre"></textarea>
       <p class="small mut">Utilise la marque et le domaine de l'onglet Citations.</p>
       <button class="btn" id="b-write">Rédiger</button>
       <div id="write-err"></div>
